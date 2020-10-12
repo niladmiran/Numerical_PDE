@@ -1,0 +1,76 @@
+%%% This script aims to re-implement the result of Fig 4.6
+%%% in the text
+
+function [u, u_exact] = upwind_scheme(delta_x, delta_t)
+
+x1 = 0: delta_x(1) : 1;
+x2 = 0: delta_x(2) : 1;
+
+
+% initialize with (4.34a)
+u = zeros(len_x, len_t, 2);
+for i = 1:len_x
+    if x(i) >= 0.2 && x(i) <= 0.4
+        u(i, 1, :) = 1.0;
+    end
+end
+
+% initialize with (4.34b)
+u(1, :, :) = 0.0;
+
+% exact solution
+u_exact = u;
+for k = 2: len_t    % t axis
+    for j = 2 : len_x -1 % x axis
+        % current position (j, k)
+        % exact solution
+        x_star = x(j) - t(k) / (1 + x(j)^2);
+        if x_star >= 0.2 && x_star <= 0.4
+            u_exact(j, k) = 1.0;
+        end
+    end
+end
+
+
+%% run algorithms
+for i = [1, 2] % delta_x(i)
+    x = 0: delta_x(i) : 1;
+    t = 0: delta_t(i) : 1.0;
+    len_x = length(x);
+    len_t = length(t);
+
+    for k = 2: len_t    % t axis
+        for j = 2 : len_x -1 % x axis
+            % current position (j, k)
+
+            % upwind scheme
+            a = (1 + x(j)^2) / (1 + 2*x(j) + x(j)^4 + 2*x(j)* t(k-1));
+            v = a * delta_t / delta_x;
+            if a < 0
+                u(j, k, i) = (1+v)*u(j, k-1, i) - v * u(j+1, k-1, i);
+            elseif a > 0
+                u(j, k, i) = (1-v)*u(j, k-1, i) + v * u(j-1, k-1, i);
+            end
+        end
+    end
+end
+
+%% plot 
+subplot(4, 2, 1); % t=0, delta_x=0.02
+
+plot(x2, u(:, 11, 2), 'linewidth', 2);
+hold on
+plot(x2, u_exact(:, 11), '-o', 'linewidth', 2);
+xlim([-0.1, 1.1]);
+ylim([-0.1, 1.1]);
+xlabel("x");
+ylabel("u");
+grid on
+    
+
+
+
+
+
+
+
