@@ -7,51 +7,27 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+
+\usepackage{algorithm}
+\usepackage{amsthm}
+\newtheorem{lemma}{Lemma}
+
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Conference Paper Title*\\
-{\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
-should not be used}
-\thanks{Identify applicable funding agency here. If none, delete this.}
+\title{SI214C Project: Multigrid Method\\
+% {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
+% should not be used}
+% \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
+\author{\IEEEauthorblockN{1\textsuperscript{st} Song Mao}
+\IEEEauthorblockA{\textit{School of Information Science and Technology} \\
+\textit{ShanghaiTech University}\\
+Shanghai, China \\
+maosong@shanghaitech.edu.cn}
 }
 
 \maketitle
@@ -63,12 +39,234 @@ or Math in Paper Title or Abstract.
 \end{abstract}
 
 \begin{IEEEkeywords}
-component, formatting, style, styling, insert
+multigrid method, acceleration, partial differential equation
 \end{IEEEkeywords}
 
 \section{Introduction}
 This document is a model and instructions for \LaTeX.
 Please observe the conference page limits. 
+
+
+
+\section{Problem formulation}
+\subsection{Finite difference method}
+To solve a one dimensional boundary value problem:
+\begin{align}
+    &-u''(x)+u(x)=f(x),\quad 0<x<1\\
+    &u(0)=u(1)=0
+\end{align}
+one could use the central difference instead of the exact dirivative:
+\begin{align}
+    &-\dfrac{u_{i+1}-2u_i+u_{i-1}}{h^2}+ u_i=f_i,\quad i=1,\dots,N-1\\
+    &u_0=u_N=0
+\end{align} 
+where $N$ is a given positive integer, $h=1/N$, $x_i=ih$ for $i=0,\dots,N$, $f_i=f(x_i)$. $u_i\approx u(x_i)$ is the approximate solution. The above equations can be rewritten as 
+\begin{equation}
+    \label{eq:main_linear_system}
+    \mathbf{A}\mathbf{u}=\mathbf{f}
+\end{equation}
+where 
+\begin{equation}
+    \mathbf{A}=\begin{bmatrix}
+        2+h^2& -1& & & \\
+        -1& 2+h^2& -1& &\\
+        & \ddots& \ddots& \ddots&\\
+        & &-1& 2+h^2&
+    \end{bmatrix}\in\mathbb{R}^{(N-1)\times(N-1)},\mathbf{u}=\begin{bmatrix}
+        u_1\\
+        \vdots\\
+        u_{N-1}
+    \end{bmatrix}\in\mathbb{R}^{N-1},\mathbf{f}=\begin{bmatrix}
+        h^2f_1\\
+        \vdots\\
+        h^2f_{N-1}
+    \end{bmatrix}\in\mathbb{R}^{N-1}
+\end{equation}
+Similarly, we can transform a $2$-dimensional boundary value problem:
+\begin{align}
+    &-u_{xx}+-u_{yy}=f(x,y),\quad 0<x<1,\quad 0<y<1\\
+    &u(0,y)=u(1,y)=u(x,0)=u(x,1)=0,\quad 0\leq x\leq1,\quad 0\leq y\leq1
+\end{align}
+into a similar block-tridiagonal system as (\ref{eq:main_linear_system}) {\color{blue} TBD, make the system more clear}. The problem now focuses on how to solve the problem (\ref{eq:main_linear_system})
+
+\subsection{Iterative method}
+In this section, we are going to solve the linear system:
+\begin{equation}
+    \label{eq:linear_system}
+    \mathbf{A}\mathbf{u}=\mathbf{f}
+\end{equation}
+There are two ways to solve such a linear system: direct methods and the iterative methods. Since the special structure of the problem ($\mathbf{A}$ is a tri-diagonal matrix) and $N$ is usually very large, one often choses the iterative method as the solver. {\color{blue} TBD, We will compare two kind of methods in Appendix A}.
+
+Now we introduce three basic iterative solvers:
+\begin{enumerate}
+    \item The first one is the Jacobi method, which takes the form:
+    \begin{equation}
+        u^{k+1}_i=\frac{1}{a_{ii}}\left(b_i-\sum_{j\neq i}a_{ij}u^{k}_j\right),\quad i=1,\dots,N-1
+    \end{equation}
+    \item The second one is the Gauss-Seidel method, which takes the form:
+    \begin{equation}
+        u^{k+1}_i=\frac{1}{a_{ii}}\left(b_i-\sum_{j< i}a_{ij}u^{k+1}_j-\sum_{j> i}a_{ij}u^{k}_j\right),\quad i=1,\dots,N-1
+    \end{equation}
+    \item The third one is the SOR method, which involves a para,eterized splitting of $\mathbf{A}$:
+    \begin{equation}
+        u_i^{k+1}=\omega\frac{1}{a_{ii}}\left(b_i-\sum_{j< i}a_{ij}u^{k+1}_j-\sum_{j> i}a_{ij}u^{k}_j\right)+(1-\omega)x_i^{k},\quad i=1,\dots,N-1
+    \end{equation} 
+    where $\omega>0$ is the parameter.
+\end{enumerate}
+The iterative methods can actually be seen as ways to decompose the matrix $\mathbf{A}$: If we write $A$ as 
+\begin{equation*}
+    \mathbf{A}=\mathbf{D}-\mathbf{L}-\mathbf{U}
+\end{equation*}
+where $\mathbf{D}$ is the diagonal, $\mathbf{L}$ and $\mathbf{U}$ are the strictly lower and upper parts of $\mathbf{A}$. Then the above three methods can be rewritten as 
+\begin{align}
+    (Jacobi)&\quad \mathbf{u}^{k+1}=\mathbf{D}^{-1}\left(\mathbf{L}+\mathbf{U}\right)\mathbf{u}^{k}+\mathbf{D}^{-1}\mathbf{f}\\
+    (Gauss-Seidel)&\quad \mathbf{u}^{k+1}=\left(\mathbf{D}-\mathbf{L}\right)^{-1}\mathbf{U}\mathbf{u}^{k}+\left(\mathbf{D}-\mathbf{L}\right)^{-1}\mathbf{f}\\
+    (SOR)&\quad \mathbf{u}^{k+1}=\left(\frac{1}{\omega}\mathbf{D}+\mathbf{L}\right)^{-1}\left(\left(\frac{1}{\omega}-1\right)\mathbf{D}+\mathbf{U}\right)\mathbf{u}^{k}+\left(\frac{1}{\omega}\mathbf{D}+\mathbf{L}\right)^{-1}\mathbf{f}
+\end{align}
+
+
+
+\section{Multigrid Method}
+\subsection{Error Analysis}
+With the iterative solvers for the linear system, we now analyze the convergence of three methods: Define the error term 
+\begin{equation}
+    \|\mathbf{e}^k\|:=\|\mathbf{u}-\mathbf{u}^k\|
+\end{equation}
+where the norm usually set as $1$, $2$ or $\inf$ norm . The iterative method can be seen as minimize the residual: 
+\begin{equation}
+    \|\mathbf{r}\|:=\|\mathbf{f}-\mathbf{A}\mathbf{u}\|
+\end{equation}
+By the definition of the residual, we obtain the relationship defined by the three iterative methods:
+\begin{align}
+    (Jacobi)&\quad e^{k+1}=\mathbf{R}_J\mathbf{e}^k\\
+    (Gauss-Seidel)&\quad e^{k+1}=\mathbf{R}_G\mathbf{e}^k\\
+    (SOR)&\quad e^{k+1}=\mathbf{R}_\omega\mathbf{e}^k
+\end{align}
+where $\mathbf{R}_J=\mathbf{D}^{-1}\left(\mathbf{L}+\mathbf{U}\right)$, $\mathbf{R}_G=\left(\mathbf{D}-\mathbf{L}\right)^{-1}\mathbf{U}$ and $\mathbf{R}_\omega=\left(\frac{1}{\omega}\mathbf{D}+\mathbf{L}\right)^{-1}\left(\left(\frac{1}{\omega}-1\right)\mathbf{D}+\mathbf{U}\right)$.
+
+To ensure the convergence of the iterative methods, we have the following lemma
+\begin{lemma}
+    The iterative methods are convergent if and only if 
+    \begin{equation}
+        \rho(\mathbf{R})<1
+    \end{equation}
+    where $\mathbf{R}=\mathbf{R}_J$ for Jacobi mathod, $\mathbf{R}=\mathbf{R}_G$ for Gauss-Seidel mathod, $\mathbf{R}=\mathbf{R}_\omega$ for SOR mathod. $\rho(\mathbf{R})$ is the spectral radius of $\mathbf{R}$, that is, if we denote $\lambda_1,\dots,\lambda_{N-1}$ as the eigenvalues of $\mathbf{R}$, then
+    \begin{equation}
+        \rho(\mathbf{R})=\max\{|\lambda_1|,\dots,|\lambda_{N-1}|\}
+    \end{equation}
+\end{lemma}
+
+Actually, the convergence rate is dominant by $\rho(\mathbf{R})$, which means
+\begin{equation}
+    \frac{\|\mathbf{e}^M\|}{\|\mathbf{e}^0\|}\leq \|\mathbf{R}\|^M\approx \left(\rho(\mathbf{R})\right)^M
+\end{equation}
+
+Now we analyze the convergence of the Gauss-Seidel method, the analysis to other two methods are similar. The eigenvalues and the corresponding eigenvectors of $\mathbf{R}_G=\left(\mathbf{D}-\mathbf{L}\right)^{-1}\mathbf{U}$ are given by
+\begin{equation}
+    \lambda_k(\mathbf{R}_G)=\cos^2\left(\frac{k\pi}{N}\right), \mathbf{v}_k^{j}=(\lambda_k)^{j/2}\sin\left(\frac{jk\pi}{N}\right),\quad j,k=1,\dots,N-1
+\end{equation}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{G_S_iterations.jpg}
+    \caption{The relationship between initial guess and the convergent iterations}
+    \label{fig:G_S_iterations}
+\end{figure}
+Now, we use the eigenvectors of $\mathbf{R}_G$ as the initial guess for the equation $\mathbf{R}\mathbf{e}=0$, the number of iterations required to reduce to $\|\mathbf{e}\|_\infty\leq 0.1$ is shown in \ref{fig:G_S_iterations}. 
+\begin{lemma}
+    The eigenvectors corresponding to different eigenvalues are linearly independent.
+\end{lemma} 
+By the above lemma, for any initial guess $\mathbf{w}$ of Gauss-Seidel method, it can be written as 
+\begin{equation}
+    \mathbf{e}^0=\sum_{j=1}^{N-1}\alpha_j\mathbf{v}_j
+\end{equation}
+As shown in \ref{fig:G_S_iterations}, now the convergence rate depends on the low frequency term ($j$ is small). So, the problem is: Can we accelerate the convergence of Gauss-Seidel method? That is how multigrid method comes out.
+
+
+
+\subsection{Multigrid method}
+The basic idea is that we consider the linear system (\ref{eq:main_linear_system}) in the \emph{coarse grid}, where low frequency term acts like high frequency term, that way, the iterative method is accelerated. 
+
+\subsubsection{1-d case}
+
+Mathematically, we first use Gauss-Seidel method to reduce the errror on the fine grid $x_0,\dots,x_N$, then we consider the coarse grid, of which intervals have length $2h$, we denote the coarse grid as $y_1,\dots,y_{N/2}$ (we assume that $N/2$ is the smallest integer that is larger than $N/2$, we still write it in the form $N/2$ for simplicity), it can be seen that $x_{2j}=y_{j}$ for $j=1,\dots,N/2$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{2d_multigrid.png}
+    \caption{Coarse and fine grid in ta Two-Grid algorithm with Uniform Mesh Spacing}
+    \label{fig:2d_multigrid}
+\end{figure}
+In $2$-d cases, we first 
+
+
+
+The algorithm is given as follows:
+
+\begin{algorithm}
+    \caption{Multigrid Method}
+    \begin{algorithmic}[1]
+        \REQUIRE Generating meshes and their relationships and set the initial guess $\mathbf{u}^0$ for $\mathbf{A}\mathbf{u}=\mathbf{f}$
+        \WHILE{NOT convergent} 
+            \STATE Smoothing on the fine grid via iterative method
+            \STATE Compute the residual on fine grid
+            \STATE Transfer of fine-grid residual to coarse grid (restriction)
+            \STATE Smoothing on coarse grid
+            \STATE Transfer of coarse-grid correction to fine grid (prolongation)
+            \STATE Update of fine-grid solution
+        \ENDWHILE
+        \STATE 
+        
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+
+\subsection{Recursive multigrid method}
+Note that we can actually use multi-level multigrid method to make the iterative methods converges faster. The idea is 
+
+
+
+
+\subsection{Algebraic multigrid method}
+Though (Geometric) multigrid methods is easy to understand and inplement, it has some disadvantages:
+\begin{itemize}
+    \item aaa
+\end{itemize}
+
+To solve these problems, algebraic multigrid methods are proposed. The basic idea is that
+
+
+
+\section{Experiment}
+
+
+
+
+\section{Conclusion}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \section{Ease of Use}
 

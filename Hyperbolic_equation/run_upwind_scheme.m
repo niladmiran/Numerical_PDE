@@ -11,6 +11,10 @@ delta_t = delta_x;
 %% plot the result
 % figure 1
 subplot(4, 2, 1); % t=0, delta_x=0.02
+% num_t = 1;
+% plot_fig(num_t, x2, u1, u_exact1, delta_t(1), delta_x(1));
+
+
 num_t = 1;
 plot(x2, u1(:, num_t), 'linewidth', 2);
 hold on
@@ -25,6 +29,8 @@ title(['t=', num2str((num_t-1)*delta_t(1)),', delta\_x=', num2str(delta_x(1))]);
 
 % figure 2
 subplot(4, 2, 2); % t=0, delta_x=0.02
+% num_t = 1;
+% plot_fig(num_t, x1, u2, u_exact2, delta_t(2), delta_x(2));
 num_t = 1;
 plot(x1, u2(:, num_t), 'linewidth', 2);
 hold on
@@ -35,7 +41,6 @@ xlabel('x');
 ylabel('u');
 grid on
 title(['t=', num2str((num_t-1)*delta_t(2)),', delta\_x=', num2str(delta_x(2))]);
-
 
 %% t= 0.1
 % figure 3
