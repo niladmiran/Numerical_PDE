@@ -165,6 +165,7 @@ Now we analyze the convergence of the Gauss-Seidel method, the analysis to other
 \begin{equation}
     \lambda_k(\mathbf{R}_G)=\cos^2\left(\frac{k\pi}{N}\right), \mathbf{v}_k^{j}=(\lambda_k)^{j/2}\sin\left(\frac{jk\pi}{N}\right),\quad j,k=1,\dots,N-1
 \end{equation}
+thus $\rho(\mathbf{R}_G)=\cos^2\left(\frac{1\pi}{N}\right)$.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.6\textwidth]{G_S_iterations.jpg}
@@ -184,25 +185,10 @@ As shown in \ref{fig:G_S_iterations}, now the convergence rate depends on the lo
 
 
 \subsection{Multigrid method}
-The basic idea is that we consider the linear system (\ref{eq:main_linear_system}) in the \emph{coarse grid}, where low frequency term acts like high frequency term, that way, the iterative method is accelerated. 
-
-\subsubsection{1-d case}
-
-Mathematically, we first use Gauss-Seidel method to reduce the errror on the fine grid $x_0,\dots,x_N$, then we consider the coarse grid, of which intervals have length $2h$, we denote the coarse grid as $y_1,\dots,y_{N/2}$ (we assume that $N/2$ is the smallest integer that is larger than $N/2$, we still write it in the form $N/2$ for simplicity), it can be seen that $x_{2j}=y_{j}$ for $j=1,\dots,N/2$.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.6\textwidth]{2d_multigrid.png}
-    \caption{Coarse and fine grid in ta Two-Grid algorithm with Uniform Mesh Spacing}
-    \label{fig:2d_multigrid}
-\end{figure}
-In $2$-d cases, we first 
-
-
-
-The algorithm is given as follows:
+The basic idea is that we consider the linear system (\ref{eq:main_linear_system}) in the \emph{coarse grid}, where low frequency term acts like high frequency term, that way, the iterative method is accelerated.  The main steps are show in Algorithm \ref{algorithm:multigrid}, we explain in detail for 1 dimensional and 2 dimensional cases.
 
 \begin{algorithm}
+    \label{algorithm:multigrid}
     \caption{Multigrid Method}
     \begin{algorithmic}[1]
         \REQUIRE Generating meshes and their relationships and set the initial guess $\mathbf{u}^0$ for $\mathbf{A}\mathbf{u}=\mathbf{f}$
@@ -214,10 +200,35 @@ The algorithm is given as follows:
             \STATE Transfer of coarse-grid correction to fine grid (prolongation)
             \STATE Update of fine-grid solution
         \ENDWHILE
-        \STATE 
-        
     \end{algorithmic}
 \end{algorithm}
+
+\subsubsection{1-d case}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{1d_multigrid.png}
+    \caption{Coarse and fine grid in ta Two-Grid algorithm with Uniform Mesh Spacing}
+    \label{fig:1d_multigrid}
+\end{figure}
+
+Mathematically, we first use Gauss-Seidel method to reduce the errror on the fine grid $x_0,\dots,x_N$, then we consider the coarse grid, of which intervals have length $2h$, we denote the coarse grid as $y_1,\dots,y_{N/2}$ (we assume that $N/2$ is the smallest integer that is larger than $N/2$, we still write it in the form $N/2$ for simplicity), it can be seen that $x_{2j}=y_{j}$ for $j=1,\dots,N/2$. We then transfer the residual to the coarse grid, which can be done by just coping the residuals on the fine grid to the coarse grid. Now, we use the Gauss-Seidel method to reduce the errror again, note that the convergence rate is dominant by $\rho(\mathbf{R}_G^{2h})=\cos^2\left(\frac{2\pi}{N}\right)$, whici is less than $\rho(\mathbf{R}_G^{h})=\rho(\mathbf{R}_G)$. Now the iterative method converges faster than that on the fine grid. Next step, we transfer the results of coarse grid back to fine grid, where we need to interpolate the residuals obtained on the coarse grid. At last, we check for the convergence to decide if we need to run the before processes again.
+
+
+\subsubsection{2-d case}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{2d_multigrid.png}
+    \caption{Coarse and fine grid in ta Two-Grid algorithm with Uniform Mesh Spacing}
+    \label{fig:2d_multigrid}
+\end{figure}
+
+The analysis in 2-d case is similar to 1-d case. We first denote the the fine grid and the coarse grid by $\Omega^h$ and $\Omega^{2h}$, and we also de define the pair of find grid as $(i,j)$ and the coarse grid $(I,J)$. Using the same configuration as 1-d case, we can express the find grid as the coarse grid as follows:
+\begin{equation}
+    (i,j)=(2I-1, 2J-1)
+\end{equation}
+The Fig \ref{fig:2d_multigrid} shows the relationship between the fine grid and the coarse grid in 2-d case.
+
+
 
 
 
@@ -226,7 +237,7 @@ The algorithm is given as follows:
 
 
 \subsection{Recursive multigrid method}
-Note that we can actually use multi-level multigrid method to make the iterative methods converges faster. The idea is 
+Note that we can actually use multi-level multigrid method to make the iterative methods converges faster. The idea is that we consider the coarser grid on the coarse grid,
 
 
 
